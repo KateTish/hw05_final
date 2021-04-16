@@ -98,3 +98,29 @@ class PostsFormTests(TestCase):
                 group=Group.objects.get(pk=1).pk,
             ).exists()
         )
+
+    def test_create_post_image_not_image(self):
+        small_text = 'я точно не картинка'.encode()
+        uploaded = SimpleUploadedFile(
+            name='no_image.txt',
+            content=small_text,
+            content_type='text/plain'
+        )
+        form_data = {
+            'text': 'Тестовый текст',
+            'group': Group.objects.get(pk=1).pk,
+            'image': uploaded
+        }
+        response = self.authorized_client.post(
+            reverse('new_post'),
+            data=form_data,
+            follow=True
+        )
+        self.assertFormError(
+            response,
+            form='form',
+            field='image',
+            errors='Загрузите правильное изображение. '
+                   'Файл, который вы загрузили, поврежден '
+                   'или не является изображением.'
+        )
